@@ -1,0 +1,50 @@
+name: EvaluateAI
+description: Evaluate AI output with deterministic rules and fail the workflow when it misses the pass threshold.
+branding:
+  icon: check-circle
+  color: purple
+
+inputs:
+  service-url:
+    description: Base URL of the EvaluateAI API, without the /evaluate path.
+    required: true
+  api-key:
+    description: EvaluateAI service key. Pass this from a GitHub Actions secret.
+    required: true
+  input:
+    description: AI output to evaluate.
+    required: true
+  rules:
+    description: JSON array of deterministic rule strings, for example ["contains:order", "maxLength:500"].
+    required: true
+  pass-threshold:
+    description: Score required to pass, from 0 through 1.
+    required: false
+    default: "0.8"
+
+outputs:
+  passed:
+    description: Whether the evaluation passed.
+    value: ${{ steps.evaluate.outputs.passed }}
+  score:
+    description: Evaluation score.
+    value: ${{ steps.evaluate.outputs.score }}
+
+runs:
+  using: composite
+  steps:
+    - id: evaluate
+      shell: pwsh
+      env:
+        EVALUATEAI_SERVICE_URL: ${{ inputs.service-url }}
+        EVALUATEAI_API_KEY: ${{ inputs.api-key }}
+        EVALUATEAI_INPUT: ${{ inputs.input }}
+        EVALUATEAI_RULES: ${{ inputs.rules }}
+        EVALUATEAI_PASS_THRESHOLD: ${{ inputs.pass-threshold }}
+      run: >
+        & "${{ github.action_path }}/Invoke-EvaluateAI.ps1"
+        -ServiceUrl $env:EVALUATEAI_SERVICE_URL
+        -ApiKey $env:EVALUATEAI_API_KEY
+        -ActualOutput $env:EVALUATEAI_INPUT
+        -Rules $env:EVALUATEAI_RULES
+        -PassThreshold $env:EVALUATEAI_PASS_THRESHOLD
