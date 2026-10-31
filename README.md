@@ -1,12 +1,12 @@
-# EvaluateAI GitHub Action
+# EvaluateAI CI integrations
 
-Evaluates one AI output against deterministic rules through an EvaluateAI API and fails the workflow when its score is below the pass threshold.
+CI integrations for [EvaluateAI](https://noregress.dev). The GitHub Action at the root of this repository evaluates one AI output against deterministic rules through an EvaluateAI API and fails the workflow when its score is below the pass threshold. An Azure DevOps task is planned.
 
 ## Usage
 
 ```yaml
 - name: Evaluate AI output
-  uses: gildraus/evaluateai-github-action@v1
+  uses: gildraus/evaluateai-ci@v1
   with:
     api-key: ${{ secrets.EVALUATEAI_API_KEY }}
     input: ${{ steps.generate.outputs.response }}
@@ -31,7 +31,7 @@ jobs:
     steps:
       - name: Evaluate sample output
         id: evaluate
-        uses: gildraus/evaluateai-github-action@v1
+        uses: gildraus/evaluateai-ci@v1
         with:
           api-key: ${{ secrets.EVALUATEAI_API_KEY }}
           input: "Your order #12345 has been cancelled."
