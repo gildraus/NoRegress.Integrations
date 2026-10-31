@@ -6,8 +6,9 @@ branding:
 
 inputs:
   service-url:
-    description: Base URL of the EvaluateAI API, without the /evaluate path.
-    required: true
+    description: Base URL of the EvaluateAI API, without the /evaluate path. Set it only for a self-hosted API.
+    required: false
+    default: https://api.noregress.dev
   api-key:
     description: EvaluateAI service key. Pass this from a GitHub Actions secret.
     required: true

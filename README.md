@@ -8,7 +8,6 @@ Evaluates one AI output against deterministic rules through an EvaluateAI API an
 - name: Evaluate AI output
   uses: gildraus/evaluateai-github-action@v1
   with:
-    service-url: ${{ vars.EVALUATEAI_URL }}
     api-key: ${{ secrets.EVALUATEAI_API_KEY }}
     input: ${{ steps.generate.outputs.response }}
     rules: '["contains:order", "maxLength:500", "regex:^.{1,500}$"]'
@@ -21,7 +20,7 @@ Evaluates one AI output against deterministic rules through an EvaluateAI API an
 
 | Input | Required | Description |
 | --- | --- | --- |
-| `service-url` | Yes | EvaluateAI API base URL, without `/evaluate`. |
+| `service-url` | No | EvaluateAI API base URL, without `/evaluate`. Defaults to `https://api.noregress.dev`; set it for a self-hosted API. |
 | `api-key` | Yes | API key sent as a bearer token. |
 | `input` | Yes | AI output to evaluate. |
 | `rules` | Yes | JSON array of deterministic rule strings. |
