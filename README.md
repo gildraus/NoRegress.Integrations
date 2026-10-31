@@ -16,6 +16,34 @@ Evaluates one AI output against deterministic rules through an EvaluateAI API an
 
 `api-key` must be a GitHub Actions secret. The action deliberately does not write the supplied AI output or API key to the workflow log.
 
+## Try it
+
+To check that the action works before wiring it to your pipeline, add the secret `EVALUATEAI_API_KEY` to your repository (Settings > Secrets and variables > Actions) and run this workflow manually. Everything except the key is a literal value, and the evaluation passes with a score of `1`:
+
+```yaml
+name: EvaluateAI smoke test
+on:
+  workflow_dispatch:
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate sample output
+        id: evaluate
+        uses: gildraus/evaluateai-github-action@v1
+        with:
+          api-key: ${{ secrets.EVALUATEAI_API_KEY }}
+          input: "Your order #12345 has been cancelled."
+          rules: '["contains:order", "maxLength:500", "regex:^Your order #[0-9]+ has been cancelled\\.$"]'
+          pass-threshold: "0.8"
+
+      - name: Show result
+        run: echo "passed=${{ steps.evaluate.outputs.passed }} score=${{ steps.evaluate.outputs.score }}"
+```
+
+To see a failure, add `"contains:refund"` to the rules: the score drops to `0.75`, below the threshold, and the step fails.
+
 ## Inputs
 
 | Input | Required | Description |
