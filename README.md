@@ -75,3 +75,7 @@ Supported types are `contains`, `isJson`, `maxLength`, and `regex`. The action s
 | --- | --- |
 | `passed` | `true` when the evaluation passed; otherwise the action fails. |
 | `score` | Evaluation score. |
+
+## License
+
+MIT. See [LICENSE](LICENSE). The license covers this action only; calling the hosted NoRegress API needs an API key.
