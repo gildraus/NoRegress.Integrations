@@ -58,7 +58,7 @@ jobs:
   ai-regression:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Your step: run your AI app and write the answers into the suite file.
       - run: ./generate-answers.sh tests/support-bot.json

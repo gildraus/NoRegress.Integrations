@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check the secret
         id: secret
         env:
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Good version (expects passed)
         uses: ./
         with:
@@ -73,7 +73,7 @@ jobs:
           echo "regressed-after-pr: outcome $OUTCOME, $FAILED failed cases"
           test "$OUTCOME" = failed
           test "$FAILED" -ge 1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: junit
