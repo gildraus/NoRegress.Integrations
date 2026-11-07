@@ -1,0 +1,8 @@
+node_modules/
+dist/
+out/
+fake-url.txt
+noregress-results.xml
+# Copied in by scripts/package-azure.mjs
+azure-devops/LICENSE
+azure-devops/NoRegress/src/

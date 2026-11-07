@@ -1,0 +1,32 @@
+{
+  "manifestVersion": 1,
+  "id": "noregress",
+  "publisher": "noregress",
+  "version": "1.0.0",
+  "name": "NoRegress",
+  "description": "Fail the pipeline when your AI output gets worse after a model, prompt or setting change.",
+  "public": false,
+  "categories": ["Azure Pipelines"],
+  "tags": ["AI", "LLM", "evaluation", "testing", "regression"],
+  "targets": [{ "id": "Microsoft.VisualStudio.Services" }],
+  "icons": { "default": "icon.png" },
+  "content": {
+    "details": { "path": "README.md" },
+    "license": { "path": "LICENSE" }
+  },
+  "links": {
+    "home": { "uri": "https://noregress.dev" },
+    "repository": { "uri": "https://github.com/gildraus/NoRegress.Integrations" },
+    "issues": { "uri": "https://github.com/gildraus/NoRegress.Integrations/issues" }
+  },
+  "repository": { "type": "git", "uri": "https://github.com/gildraus/NoRegress.Integrations" },
+  "files": [{ "path": "NoRegress" }],
+  "contributions": [
+    {
+      "id": "noregress-task",
+      "type": "ms.vss-distributed-task.task",
+      "targets": ["ms.vss-distributed-task.tasks"],
+      "properties": { "name": "NoRegress" }
+    }
+  ]
+}

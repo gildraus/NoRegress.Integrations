@@ -1,0 +1,44 @@
+name: Release Azure DevOps extension
+
+# Push a tag like azure-v1.0.1 to publish. Bump the version in azure-devops/vss-extension.json and
+# azure-devops/NoRegress/task.json first; the Marketplace rejects a version it already has.
+# Run by hand with "publish" off to only build the .vsix.
+on:
+  push:
+    tags: ["azure-v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to the Marketplace (off builds the .vsix only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm test
+      - name: Check the tag matches the extension version
+        if: startsWith(github.ref, 'refs/tags/azure-v')
+        run: |
+          version=$(node -p "require('./azure-devops/vss-extension.json').version")
+          test "azure-v$version" = "$GITHUB_REF_NAME" || { echo "::error::Tag $GITHUB_REF_NAME does not match extension version $version"; exit 1; }
+      - name: Build
+        if: ${{ !(startsWith(github.ref, 'refs/tags/azure-v') || inputs.publish) }}
+        run: node scripts/package-azure.mjs
+      - name: Publish
+        if: startsWith(github.ref, 'refs/tags/azure-v') || inputs.publish
+        env:
+          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_EXT_PAT }}
+        run: node scripts/package-azure.mjs --publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: dist/*.vsix

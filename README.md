@@ -1,81 +1,141 @@
 # NoRegress Integrations
 
-Integrations for [NoRegress](https://noregress.dev). The GitHub Action at the root of this repository evaluates one AI output against deterministic rules through an EvaluateAI API and fails the workflow when its score is below the pass threshold. An Azure DevOps task is planned.
+CI integrations for [NoRegress](https://noregress.dev): fail the build when your AI output gets worse after a model, prompt or setting change.
 
-## Usage
+- **GitHub Action**: `gildraus/NoRegress.Integrations@v2`
+- **Azure DevOps task**: `NoRegress@1`, from the Visual Studio Marketplace
 
-```yaml
-- name: Evaluate AI output
-  uses: gildraus/NoRegress.Integrations@v1
-  with:
-    api-key: ${{ secrets.EVALUATEAI_API_KEY }}
-    input: ${{ steps.generate.outputs.response }}
-    rules: '["contains:order", "maxLength:500", "regex:^.{1,500}$"]'
-    pass-threshold: "0.8"
-```
+Both do the same thing with the same code: read your suite file, send it to the NoRegress API in batches of up to 50 cases, print each case's result, write a JUnit XML file and pass or fail the step.
 
-`api-key` must be a GitHub Actions secret. The action deliberately does not write the supplied AI output or API key to the workflow log.
+## How it fits in your pipeline
 
-## Try it
+1. You keep a **suite file** in your repository: test questions and the rules each answer must follow.
+2. A step of your own runs your AI app on each question and writes the answers into the suite file (`actualOutput`). NoRegress never calls your app.
+3. The NoRegress step sends the suite to NoRegress and fails the build if any case fails.
 
-To check that the action works before wiring it to your pipeline, add the secret `EVALUATEAI_API_KEY` to your repository (Settings > Secrets and variables > Actions) and run this workflow manually. Everything except the key is a literal value, and the evaluation passes with a score of `1`:
+## The suite file
 
-```yaml
-name: EvaluateAI smoke test
-on:
-  workflow_dispatch:
-
-jobs:
-  evaluate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Evaluate sample output
-        id: evaluate
-        uses: gildraus/NoRegress.Integrations@v1
-        with:
-          api-key: ${{ secrets.EVALUATEAI_API_KEY }}
-          input: "Your order #12345 has been cancelled."
-          rules: '["contains:order", "maxLength:500", "regex:^Your order #[0-9]+ has been cancelled\\.$"]'
-          pass-threshold: "0.8"
-
-      - name: Show result
-        run: echo "passed=${{ steps.evaluate.outputs.passed }} score=${{ steps.evaluate.outputs.score }}"
-```
-
-To see a failure, add `"contains:refund"` to the rules: the score drops to `0.75`, below the threshold, and the step fails.
-
-## Inputs
-
-| Input | Required | Description |
-| --- | --- | --- |
-| `service-url` | No | EvaluateAI API base URL, without `/evaluate`. Defaults to `https://api.noregress.dev`; set it for a self-hosted API. |
-| `api-key` | Yes | API key sent as a bearer token. |
-| `input` | Yes | AI output to evaluate. |
-| `rules` | Yes | JSON array of deterministic rule strings. |
-| `pass-threshold` | No | Required score between `0` and `1`; defaults to `0.8`. |
-
-## Rule format
-
-The `rules` input is a JSON array. Each item has the form `type:value`, except `isJson`, which has no value:
+A suite file is the body of a `POST /evaluate` request: a `cases` array and an optional `continueOnFailures`.
 
 ```json
-[
-  "contains:order",
-  "maxLength:500",
-  "regex:^Your order #[0-9]+$",
-  "isJson"
-]
+{
+  "cases": [
+    {
+      "id": "refund-timing-01",
+      "input": "When do I get my money back?",
+      "actualOutput": "Refunds reach your card 5 to 10 business days after we receive the return.",
+      "expectedOutput": "Refunds take 5 to 10 business days after the return arrives.",
+      "passThreshold": 0.8,
+      "deterministicRules": [
+        { "id": "business-days", "type": "contains", "value": "business days" },
+        { "id": "short", "type": "maxLength", "value": 600 }
+      ],
+      "semanticRules": [
+        { "id": "polite", "criterion": "The response is polite and professional." }
+      ]
+    }
+  ]
+}
 ```
 
-Supported types are `contains`, `isJson`, `maxLength`, and `regex`. The action sends one case with the supplied threshold and generated deterministic-rule IDs to `POST /evaluate`, reads the streamed case and summary lines, then fails if the returned score is below the returned threshold.
-
-## Outputs
-
-| Output | Description |
+| Field | Meaning |
 | --- | --- |
-| `passed` | `true` when the evaluation passed; otherwise the action fails. |
-| `score` | Evaluation score. |
+| `id` | Unique name of the case, shown in the results |
+| `input` | The question your app was asked (optional, gives the judge context) |
+| `actualOutput` | Your app's answer: the text being checked |
+| `expectedOutput` | Optional key points a good answer covers, graded by the judge |
+| `passThreshold` | Share of rules that must pass, from 0 to 1 (default 0.8) |
+| `deterministicRules` | Exact checks: `maxLength`, `contains`, `notContains`, `regex`, `isJson` |
+| `semanticRules` | Plain-English rules graded by the AI judge |
+| `continueOnFailures` | Top level, optional: `true` reports failures without failing the step |
+
+See [`examples/`](examples/) for complete suites, including a 10-case support bot.
+
+## GitHub Actions
+
+```yaml
+jobs:
+  ai-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Your step: run your AI app and write the answers into the suite file.
+      - run: ./generate-answers.sh tests/support-bot.json
+
+      - uses: gildraus/NoRegress.Integrations@v2
+        with:
+          suite: tests/support-bot.json
+          api-key: ${{ secrets.NOREGRESS_API_KEY }}
+```
+
+Add the key as a repository secret (Settings > Secrets and variables > Actions). The run page shows a summary table with one row per case.
+
+| Input | Required | Default | Meaning |
+| --- | --- | --- | --- |
+| `suite` | yes | | Path to the suite file, relative to the repository root |
+| `api-key` | yes | | Your NoRegress API key, from a secret |
+| `service-url` | no | `https://api.noregress.dev` | Only for a self-hosted NoRegress API |
+| `batch-size` | no | `50` | Cases per request |
+| `junit-file` | no | `noregress-results.xml` | Where the JUnit XML file is written |
+
+| Output | Meaning |
+| --- | --- |
+| `outcome` | `passed` or `failed`; an evaluation that could not finish is `failed` |
+| `cases`, `passed-cases`, `failed-cases`, `inconclusive-cases`, `not-graded-cases` | Counts |
+| `junit-file` | Absolute path of the JUnit XML file |
+
+GitHub has no built-in test results tab. To see the cases as tests, pass `junit-file` to a test report action of your choice, or upload it as an artifact.
+
+## Azure DevOps
+
+Install the NoRegress extension from the Visual Studio Marketplace into your organization, add the key as a secret pipeline variable, and add the task:
+
+```yaml
+steps:
+  # Your step: run your AI app and write the answers into the suite file.
+  - script: ./generate-answers.sh tests/support-bot.json
+
+  - task: NoRegress@1
+    inputs:
+      suite: tests/support-bot.json
+      apiKey: $(NoRegressApiKey)
+```
+
+The inputs are the same as the GitHub Action's, in Azure DevOps naming: `suite`, `apiKey`, `serviceUrl`, `batchSize`, `junitFile`. The task publishes the JUnit file, so every case appears in the run's **Tests** tab. Output variables: `outcome`, `cases`, `passedCases`, `failedCases`, `inconclusiveCases`, `notGradedCases`, `junitFile`. It runs on Linux and Windows agents.
+
+## What the step prints
+
+```
+NoRegress: evaluating 10 cases from tests/support-bot.json in 1 request(s) of at most 50 cases.
+Waiting: The judge model is loading. (30s)
+PASSED       order-status-01  score 1.00 / threshold 0.80
+FAILED       return-window-01  score 0.78 / threshold 1.00  (failed rules: declines-return)
+...
+NoRegress: 10 cases: 8 passed, 2 failed, 0 inconclusive, 0 not graded. Outcome: failed.
+```
+
+A case is **inconclusive** when the judge could not grade one of its rules; that fails the step like a failed case. A case is **not graded** when all its rules were skipped (the judge is turned off); that does not fail the step.
+
+The step fails without an outcome when the API key is rejected, the suite is invalid, or the evaluation stops before the end. It waits as long as the API keeps reporting progress, so a slow judge does not fail the run.
+
+## Your data
+
+The step prints, outputs and writes to the JUnit file only case ids, results, scores, thresholds and rule ids. It never shows your questions, answers, expected outputs, rules or judge reasons, and it never shows the API key. NoRegress does not store what you send; for semantic rules and `expectedOutput`, the answers are sent to the configured AI judge.
+
+## Version 1
+
+`@v1` is the earlier single-output action: one `input`, a JSON array of exact `rules` such as `["contains:order", "maxLength:500"]`, and a `pass-threshold`. It keeps working unchanged. New pipelines should use `@v2`.
+
+## Development
+
+```sh
+npm test                      # unit tests, no network
+npm run package:azure         # builds dist/*.vsix
+```
+
+The code is plain JavaScript with no dependencies: `src/core.js` holds the logic, `src/github.js` and `src/azure.js` adapt it to each CI system. Publishing steps for maintainers are in [`docs/owner-setup.md`](docs/owner-setup.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE). The license covers this action only; calling the hosted NoRegress API needs an API key.
+MIT. See [LICENSE](LICENSE). The license covers this repository only; calling the hosted NoRegress API needs an API key.
