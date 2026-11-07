@@ -1,0 +1,6 @@
+{
+  "cases": [
+    { "id": "ok-01", "actualOutput": "Fine.", "deterministicRules": [{ "id": "short", "type": "maxLength", "value": 100 }] },
+    { "id": "fail-02", "actualOutput": "Too long.", "deterministicRules": [{ "id": "short", "type": "maxLength", "value": 3 }] }
+  ]
+}

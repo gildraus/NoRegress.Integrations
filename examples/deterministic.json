@@ -1,0 +1,35 @@
+{
+  "cases": [
+    {
+      "id": "order-status",
+      "input": "Where is my order #48213?",
+      "actualOutput": "Your order #48213 has shipped and should arrive in 3 to 5 business days.",
+      "passThreshold": 1.0,
+      "deterministicRules": [
+        { "id": "mentions-order", "type": "regex", "value": "#[0-9]{5}" },
+        { "id": "short", "type": "maxLength", "value": 300 },
+        { "id": "no-markdown", "type": "notContains", "value": "**" }
+      ]
+    },
+    {
+      "id": "refund-timing",
+      "input": "When do I get my money back?",
+      "actualOutput": "Refunds reach your original payment method 5 to 10 business days after we receive the return.",
+      "passThreshold": 1.0,
+      "deterministicRules": [
+        { "id": "business-days", "type": "contains", "value": "business days" },
+        { "id": "short", "type": "maxLength", "value": 300 }
+      ]
+    },
+    {
+      "id": "order-json",
+      "input": "Return the order status as JSON.",
+      "actualOutput": "{\"order\": \"48213\", \"status\": \"shipped\"}",
+      "passThreshold": 1.0,
+      "deterministicRules": [
+        { "id": "valid-json", "type": "isJson" },
+        { "id": "has-status", "type": "contains", "value": "\"status\"" }
+      ]
+    }
+  ]
+}

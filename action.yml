@@ -1,51 +1,46 @@
-name: EvaluateAI
-description: Evaluate AI output with deterministic rules and fail the workflow when it misses the pass threshold.
+name: NoRegress
+description: Evaluate a suite of AI outputs with NoRegress and fail the workflow when the AI got worse.
+author: Miloš Vujčić
 branding:
   icon: check-circle
   color: purple
 
 inputs:
+  suite:
+    description: Path to the suite file, relative to the repository root. The file is a POST /evaluate request body with a "cases" array.
+    required: true
+  api-key:
+    description: NoRegress API key. Pass it from a GitHub Actions secret.
+    required: true
   service-url:
-    description: Base URL of the EvaluateAI API, without the /evaluate path. Set it only for a self-hosted API.
+    description: Base URL of the NoRegress API, without /evaluate. Set it only for a self-hosted API.
     required: false
     default: https://api.noregress.dev
-  api-key:
-    description: EvaluateAI service key. Pass this from a GitHub Actions secret.
-    required: true
-  input:
-    description: AI output to evaluate.
-    required: true
-  rules:
-    description: JSON array of deterministic rule strings, for example ["contains:order", "maxLength:500"].
-    required: true
-  pass-threshold:
-    description: Score required to pass, from 0 through 1.
+  batch-size:
+    description: Maximum cases per request. Match the API's case limit if a self-hosted API changed it.
     required: false
-    default: "0.8"
+    default: "50"
+  junit-file:
+    description: Where to write the JUnit XML results, relative to the repository root.
+    required: false
+    default: noregress-results.xml
 
 outputs:
-  passed:
-    description: Whether the evaluation passed.
-    value: ${{ steps.evaluate.outputs.passed }}
-  score:
-    description: Evaluation score.
-    value: ${{ steps.evaluate.outputs.score }}
+  outcome:
+    description: passed or failed. An incomplete evaluation is failed.
+  cases:
+    description: Number of cases evaluated.
+  passed-cases:
+    description: Number of passed cases.
+  failed-cases:
+    description: Number of failed cases.
+  inconclusive-cases:
+    description: Number of cases the judge could not grade.
+  not-graded-cases:
+    description: Number of cases whose rules were all skipped.
+  junit-file:
+    description: Absolute path of the JUnit XML file.
 
 runs:
-  using: composite
-  steps:
-    - id: evaluate
-      shell: pwsh
-      env:
-        EVALUATEAI_SERVICE_URL: ${{ inputs.service-url }}
-        EVALUATEAI_API_KEY: ${{ inputs.api-key }}
-        EVALUATEAI_INPUT: ${{ inputs.input }}
-        EVALUATEAI_RULES: ${{ inputs.rules }}
-        EVALUATEAI_PASS_THRESHOLD: ${{ inputs.pass-threshold }}
-      run: >
-        & "${{ github.action_path }}/Invoke-EvaluateAI.ps1"
-        -ServiceUrl $env:EVALUATEAI_SERVICE_URL
-        -ApiKey $env:EVALUATEAI_API_KEY
-        -ActualOutput $env:EVALUATEAI_INPUT
-        -Rules $env:EVALUATEAI_RULES
-        -PassThreshold $env:EVALUATEAI_PASS_THRESHOLD
+  using: node24
+  main: src/github.js

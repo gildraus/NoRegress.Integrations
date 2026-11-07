@@ -1,0 +1,14 @@
+{
+  "name": "noregress-integrations",
+  "version": "2.0.0",
+  "private": true,
+  "description": "GitHub Action and Azure DevOps task that evaluate an AI test suite with NoRegress and fail the build when it gets worse.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "package:azure": "node scripts/package-azure.mjs"
+  }
+}

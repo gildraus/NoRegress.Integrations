@@ -1,0 +1,470 @@
+{
+  "cases": [
+    {
+      "id": "order-status-01",
+      "input": "Where is my order #NL-48213? I ordered a week ago and nothing has arrived.",
+      "actualOutput": "Thanks for your patience. Order #NL-48213 was shipped with standard delivery, which takes 7 to 10 business days, so it is still within the normal delivery time. We do not offer parcel tracking, but you will receive an email when the courier is about to deliver. If it has not arrived after 10 business days, please contact support@nordlys.example.",
+      "expectedOutput": "The order has shipped with standard delivery, which takes 3 to 5 business days. The customer can track it from their account. If it does not arrive in that time, support will help.",
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "order-number",
+          "type": "regex",
+          "value": "#NL-\\d{5}"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "tells-how-to-track",
+          "criterion": "The response tells the customer how to track the parcel."
+        }
+      ]
+    },
+    {
+      "id": "cancel-01",
+      "input": "Please cancel order #NL-50317, I ordered the wrong size.",
+      "actualOutput": "No problem at all. Orders can be cancelled at any time, even after they have shipped, so I have cancelled #NL-50317 for you. If the parcel still arrives, simply refuse it at the door and the refund will be issued immediately. If you would like the right size, you can place a new order now.",
+      "expectedOutput": "Cancellation is possible as long as the order has not been packed. If it has already shipped, the customer can return it free of charge within 30 days of delivery.",
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "order-number",
+          "type": "regex",
+          "value": "#NL-\\d{5}"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "cancel-before-packing",
+          "criterion": "The response explains that an order can only be cancelled before the warehouse packs it."
+        }
+      ]
+    },
+    {
+      "id": "refund-timing-01",
+      "input": "I returned my jacket 3 days ago. When do I get my money back?",
+      "actualOutput": "Thank you for returning the jacket. Your refund has been approved and the money will be back in your account by Friday 24 October. If you do not see it by then, contact support@nordlys.example with your order number.",
+      "expectedOutput": "The refund goes to the original payment method within 5 to 10 business days after the warehouse receives the return.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "business-days",
+          "type": "contains",
+          "value": "business days"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "no-refund-date",
+          "criterion": "The response does not name a calendar date on which the refund will arrive."
+        }
+      ]
+    },
+    {
+      "id": "return-window-01",
+      "input": "Can I still return boots I bought 6 weeks ago? They are unworn and still have the tags.",
+      "actualOutput": "Yes, of course. Nordlys accepts returns within 60 days of delivery as long as the items are unworn and have their tags, so your boots qualify. I have registered the return for you: print the return label from the Orders page in your account and drop the parcel at any post office.",
+      "expectedOutput": "Returns are accepted within 30 days of delivery, so a return after 6 weeks cannot be registered. The customer can contact human support about special circumstances.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "return-window",
+          "type": "contains",
+          "value": "30 days"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "declines-return",
+          "criterion": "The response does not accept or register the return, because the 30-day return window has passed."
+        }
+      ]
+    },
+    {
+      "id": "price-match-01",
+      "input": "TrailMart sells the same Fjell 2 tent for 40 euros less. Will you match their price?",
+      "actualOutput": "Yes, we match prices from any EU retailer. Reply with the link to the TrailMart listing for the Fjell 2 and I will apply the 40 euro difference as a discount to your order. The price match applies to the tent only, not to shipping.",
+      "expectedOutput": "Nordlys does not offer price matching, so the price cannot be matched.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "no-price-match",
+          "criterion": "The response states that price matching is not offered."
+        }
+      ]
+    },
+    {
+      "id": "payment-failed-01",
+      "input": "My payment failed at checkout. Can I give you my card details so you place the order for me?",
+      "actualOutput": "Sorry the payment did not go through. For your security I cannot take card details or place the order for you. Please try the checkout again, and if it fails a second time, check with your bank that the payment was not blocked, or choose another payment method such as PayPal or bank transfer.",
+      "expectedOutput": "The bot cannot take card details or place the order. The customer should retry the checkout, check with their bank, or use another payment method.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "no-card-details",
+          "criterion": "The response refuses to take payment card details and does not ask the customer to share them."
+        }
+      ]
+    },
+    {
+      "id": "product-question-01",
+      "input": "Is the Fjell 2 tent waterproof enough for autumn in Norway?",
+      "actualOutput": "The Fjell 2 is a lightweight summer tent with a 1500 mm flysheet, so I would not recommend it for autumn in Norway, where sustained rain and wind are common. For autumn conditions, a tent with a 3-season rating and a higher hydrostatic head would be a better fit. The full specifications are on the product page under Details.",
+      "expectedOutput": "The Fjell 2 has a 3000 mm flysheet and a 5000 mm floor with taped seams and is a 3-season tent, so it is suitable for autumn rain in Norway but not for heavy snow.",
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "hydrostatic-head",
+          "type": "contains",
+          "value": "3000 mm"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "answers-waterproof",
+          "criterion": "The response answers whether the tent is waterproof enough for autumn conditions and refers to the tent's specifications."
+        }
+      ]
+    },
+    {
+      "id": "shipping-time-01",
+      "input": "If I order today, will it arrive before Friday? I am in Germany.",
+      "actualOutput": "Yes. Orders to Germany arrive within two days, so if you order today the parcel is guaranteed to arrive on Thursday, well before Friday. You can choose standard delivery, there is no need to pay for express.",
+      "expectedOutput": "Standard delivery takes 3 to 5 business days and express delivery 1 to 2 business days. Orders placed before 14:00 CET on a weekday ship the same day. Express delivery is the safer choice for a deadline, but no specific day is guaranteed.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "business-days",
+          "type": "contains",
+          "value": "business days"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "no-delivery-guarantee",
+          "criterion": "The response makes clear that no specific delivery day is guaranteed."
+        }
+      ]
+    },
+    {
+      "id": "warranty-01",
+      "input": "My headlamp stopped working after 8 months. What can I do?",
+      "actualOutput": "Sorry to hear that. Nordlys products are covered by a 6-month warranty, so at 8 months your headlamp is unfortunately no longer covered. As a goodwill gesture I can offer you a 10 percent discount on a replacement headlamp. Let me know if you would like the discount code.",
+      "expectedOutput": "The headlamp is covered by the 2-year warranty. The customer should email support with the order number and a description of the fault. Support will arrange a repair, a replacement or a refund.",
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "warranty-years",
+          "type": "contains",
+          "value": "2-year"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "warranty-steps",
+          "criterion": "The response tells the customer concretely how to make a warranty claim."
+        }
+      ]
+    },
+    {
+      "id": "out-of-scope-01",
+      "input": "The courier damaged my parcel. Can you give me legal advice on suing them?",
+      "actualOutput": "I am sorry about the damaged parcel. I cannot give legal advice, but in this case the claim needs to go to the courier directly, as responsibility passes to them once the parcel leaves our warehouse. Contact the courier with the tracking number and photos of the damage and they will process a compensation claim.",
+      "expectedOutput": "The response says it cannot give legal advice. It tells the customer to report the damage to support within 14 days of delivery with the order number and photos, and says Nordlys will replace or refund the item and deal with the courier itself.",
+      "passThreshold": 1,
+      "deterministicRules": [
+        {
+          "id": "max-length",
+          "type": "maxLength",
+          "value": 600
+        },
+        {
+          "id": "no-markdown",
+          "type": "notContains",
+          "value": "**"
+        },
+        {
+          "id": "no-competitor",
+          "type": "notContains",
+          "value": "TrailMart"
+        },
+        {
+          "id": "no-card-request",
+          "type": "notContains",
+          "value": "card number"
+        },
+        {
+          "id": "support-email",
+          "type": "contains",
+          "value": "support@nordlys.example"
+        }
+      ],
+      "semanticRules": [
+        {
+          "id": "polite",
+          "criterion": "The response is polite and professional towards the customer."
+        },
+        {
+          "id": "english",
+          "criterion": "The response is written in English, not in any other language."
+        },
+        {
+          "id": "declines-legal-advice",
+          "criterion": "The response declines to give legal advice."
+        }
+      ]
+    }
+  ]
+}

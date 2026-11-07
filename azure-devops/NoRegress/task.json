@@ -1,0 +1,74 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "8496d57a-e506-4970-acf9-918b0f0aba37",
+  "name": "NoRegress",
+  "friendlyName": "NoRegress",
+  "description": "Evaluate a suite of AI outputs with NoRegress and fail the pipeline when the AI got worse.",
+  "helpMarkDown": "[Documentation](https://github.com/gildraus/NoRegress.Integrations#azure-devops)",
+  "category": "Test",
+  "author": "Miloš Vujčić",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "minimumAgentVersion": "3.232.1",
+  "instanceNameFormat": "NoRegress $(suite)",
+  "inputs": [
+    {
+      "name": "suite",
+      "type": "string",
+      "label": "Suite file",
+      "required": true,
+      "helpMarkDown": "Path to the suite file, relative to the repository root. The file is a POST /evaluate request body with a \"cases\" array."
+    },
+    {
+      "name": "apiKey",
+      "type": "string",
+      "label": "API key",
+      "required": true,
+      "helpMarkDown": "NoRegress API key. Pass it from a secret variable, for example $(NoRegressApiKey)."
+    },
+    {
+      "name": "serviceUrl",
+      "type": "string",
+      "label": "Service URL",
+      "defaultValue": "https://api.noregress.dev",
+      "required": false,
+      "helpMarkDown": "Base URL of the NoRegress API, without /evaluate. Set it only for a self-hosted API."
+    },
+    {
+      "name": "batchSize",
+      "type": "string",
+      "label": "Batch size",
+      "defaultValue": "50",
+      "required": false,
+      "helpMarkDown": "Maximum cases per request. Match the API's case limit if a self-hosted API changed it."
+    },
+    {
+      "name": "junitFile",
+      "type": "string",
+      "label": "JUnit file",
+      "defaultValue": "noregress-results.xml",
+      "required": false,
+      "helpMarkDown": "Where to write the JUnit XML results, relative to the repository root. The task publishes it to the run's Tests tab."
+    }
+  ],
+  "outputVariables": [
+    { "name": "outcome", "description": "passed or failed. An incomplete evaluation is failed." },
+    { "name": "cases", "description": "Number of cases evaluated." },
+    { "name": "passedCases", "description": "Number of passed cases." },
+    { "name": "failedCases", "description": "Number of failed cases." },
+    { "name": "inconclusiveCases", "description": "Number of cases the judge could not grade." },
+    { "name": "notGradedCases", "description": "Number of cases whose rules were all skipped." },
+    { "name": "junitFile", "description": "Absolute path of the JUnit XML file." }
+  ],
+  "execution": {
+    "Node24": {
+      "target": "src/azure.js"
+    },
+    "Node20_1": {
+      "target": "src/azure.js"
+    }
+  }
+}

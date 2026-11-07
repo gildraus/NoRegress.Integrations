@@ -1,0 +1,68 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    name: Unit tests (${{ matrix.os }}, Node ${{ matrix.node }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["24"]
+        include:
+          - os: ubuntu-latest
+            node: "20"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+
+  action:
+    # Runs the action itself, as a customer would, against the fake API from the tests. No network, no secret.
+    name: Action against the fake API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Start the fake API
+        run: |
+          node -e "require('./test/fake-api').startFakeApi().then(api => { require('fs').writeFileSync('fake-url.txt', api.url); })" &
+          for i in $(seq 1 50); do [ -s fake-url.txt ] && break; sleep 0.1; done
+          echo "FAKE_URL=$(cat fake-url.txt)" >> "$GITHUB_ENV"
+      - name: Passing suite
+        id: pass
+        uses: ./
+        with:
+          suite: examples/deterministic.json
+          api-key: fake-key
+          service-url: ${{ env.FAKE_URL }}
+      - name: Failing suite
+        id: fail
+        continue-on-error: true
+        uses: ./
+        with:
+          suite: test/fixtures/failing.json
+          api-key: fake-key
+          service-url: ${{ env.FAKE_URL }}
+          junit-file: out/failing.xml
+      - name: Check outcomes
+        env:
+          PASS_OUTCOME: ${{ steps.pass.outputs.outcome }}
+          PASS_CASES: ${{ steps.pass.outputs.cases }}
+          FAIL_OUTCOME: ${{ steps.fail.outputs.outcome }}
+          FAIL_STEP: ${{ steps.fail.outcome }}
+          FAIL_JUNIT: ${{ steps.fail.outputs.junit-file }}
+        run: |
+          test "$PASS_OUTCOME" = passed
+          test "$PASS_CASES" = 3
+          test "$FAIL_OUTCOME" = failed
+          test "$FAIL_STEP" = failure
+          grep -q '<failure type="failed"' "$FAIL_JUNIT"
