@@ -52,14 +52,14 @@ node scripts/package-azure.mjs --publish --share-with <organization>
 2. In Azure DevOps: **Organization settings > Extensions > Shared**, open **NoRegress** and click **Install**.
 3. Check: **Organization settings > Extensions > Installed** lists NoRegress.
 
-## 6. End-to-end pipeline
+## 6. Smoke test pipeline
 
-The published task is tested from the EvaluateAI repository: its `azure-pipelines.yml` builds and starts the API on the build machine with a random key, then runs `NoRegress@1` against it on a suite that must pass and one that must fail. It needs no API key from you and no public API. It needs step 4.
+The published task is smoke-tested from the EvaluateAI repository: `.azure-pipelines/smoke-test.yml` builds and starts the API on the build machine with a random key, then runs `NoRegress@1` against it on one sample case, like the GitHub Action smoke test there. It needs no API key from you and no public API. It needs step 4.
 
 1. **Pipelines > New pipeline > GitHub (YAML)**. Sign in to GitHub and approve the **Azure Pipelines** app for `gildraus/EvaluateAI` when asked.
-2. Pick `gildraus/EvaluateAI`, choose **Existing Azure Pipelines YAML file**, branch `master`, path `/azure-pipelines.yml`, **Continue**, then **Run**.
+2. Pick `gildraus/EvaluateAI`, choose **Existing Azure Pipelines YAML file**, branch `master`, path `/.azure-pipelines/smoke-test.yml`, **Continue**, then **Run**.
 
-Check: the run ends as **partially succeeded** (the "must fail" step fails on purpose), the last step "Check the task's outputs" passes, the run's **Tests** tab lists five cases, and the log shows no key.
+Check: the run succeeds, the step "Verify task outputs" passes, and the log shows no key.
 
 ## 7. Go public (after the publisher is verified)
 
